@@ -1,0 +1,570 @@
+/*
+ * Panel lateral de MagicTools. Mismo lenguaje visual que GhostCode: neutros derivados del tema
+ * activo y un color de acento por pestaña.
+ */
+:root {
+  --fg: var(--vscode-foreground);
+  --bg: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  --muted: var(--vscode-descriptionForeground);
+  --faint: color-mix(in oklab, var(--fg) 45%, var(--bg));
+  --line: color-mix(in oklab, var(--fg) 11%, transparent);
+  --line-strong: color-mix(in oklab, var(--fg) 22%, transparent);
+  --card: color-mix(in oklab, var(--fg) 3.5%, var(--bg));
+  --card-hover: color-mix(in oklab, var(--fg) 7%, var(--bg));
+  --accent: color-mix(in oklab, var(--vscode-focusBorder, #4a7fd1) 62%, var(--fg));
+  --ok: color-mix(in oklab, var(--vscode-charts-green, #6fae6f) 72%, var(--fg));
+  --warn: color-mix(in oklab, var(--vscode-charts-yellow, #c8a74a) 70%, var(--fg));
+  --radius: 7px;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 12px 12px 24px;
+  color: var(--fg);
+  background: var(--bg);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+p { margin: 0; }
+code { font-family: var(--vscode-editor-font-family); font-size: 0.92em; }
+.grow { flex: 1; min-width: 0; }
+.muted { color: var(--muted); font-size: 12px; }
+.icon { width: 16px; height: 16px; flex: none; }
+
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 2px; }
+button:disabled { cursor: default; }
+
+/* --- Cabecera ------------------------------------------------------------------- */
+.hero { padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); }
+.brand { display: flex; align-items: center; gap: 11px; }
+.logo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  color: var(--fg);
+  background: color-mix(in oklab, var(--fg) 7%, var(--bg));
+  border: 1px solid var(--line);
+}
+.logo .icon { width: 22px; height: 22px; overflow: visible; }
+h1 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.005em; }
+.status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.dot { width: 6px; height: 6px; border-radius: 50%; flex: none; background: var(--ok); }
+.warn .dot { background: var(--warn); }
+.detail { font-size: 11.5px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* --- Pestañas ------------------------------------------------------------------- */
+[data-hue="starter"] { --hue: color-mix(in oklab, var(--vscode-charts-green, #6fae6f) 70%, var(--fg)); }
+[data-hue="junior"] { --hue: color-mix(in oklab, var(--vscode-charts-blue, #4a8fdc) 70%, var(--fg)); }
+[data-hue="senior"] { --hue: color-mix(in oklab, var(--vscode-charts-purple, #a07fd0) 70%, var(--fg)); }
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: 0 -12px 14px;
+  padding: 0 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px 9px;
+  font-size: 11px;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+.tab .icon { width: 17px; height: 17px; }
+.tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.tab:hover { color: var(--fg); }
+.tab::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: transparent;
+  transition: background 0.15s;
+}
+.tab[aria-selected="true"] { color: var(--fg); font-weight: 600; }
+.tab[aria-selected="true"] .icon { color: var(--hue); }
+.tab[aria-selected="true"]::after { background: var(--hue); }
+.tab-badge {
+  position: absolute;
+  top: 4px;
+  left: calc(50% + 6px);
+  min-width: 15px;
+  padding: 0 4px;
+  border-radius: 8px;
+  font-size: 9.5px;
+  font-weight: 600;
+  line-height: 15px;
+  text-align: center;
+  color: var(--vscode-badge-foreground);
+  background: var(--vscode-badge-background);
+}
+
+.tab-panel { display: flex; flex-direction: column; gap: 14px; }
+
+/* --- Secciones y herramientas --------------------------------------------------- */
+.block {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  overflow: hidden;
+  box-shadow: inset 0 2px 0 var(--hue);
+}
+.block-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px 10px;
+  background: color-mix(in oklab, var(--hue) 7%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.block-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--hue);
+  background: color-mix(in oklab, var(--hue) 16%, transparent);
+}
+.block-icon .icon { width: 17px; height: 17px; }
+.block-head h2 { margin: 0; font-size: 13px; font-weight: 600; }
+.block-head p { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.block > .body { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+
+.group { display: flex; flex-direction: column; gap: 6px; }
+.group-label { margin: 0 2px; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--hue); }
+.group-count { margin-left: 4px; padding: 0 5px; border-radius: 8px; font-size: 9.5px; color: var(--muted); background: color-mix(in oklab, var(--fg) 8%, transparent); }
+.tiles { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--bg); }
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 11px;
+  text-align: left;
+  background: var(--bg);
+  transition: background 0.15s;
+}
+.tool + .tool { border-top: 1px solid var(--line); }
+button.tile:hover { background: var(--card-hover); }
+.tile strong { display: block; font-size: 12.5px; font-weight: 500; }
+.tile small { display: block; font-size: 11.5px; color: var(--muted); }
+.tile-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--hue);
+  background: color-mix(in oklab, var(--hue) 12%, var(--bg));
+}
+.tile-icon .icon { width: 15px; height: 15px; }
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+}
+.empty strong { color: var(--fg); font-weight: 500; font-size: 12.5px; }
+.empty .icon { width: 22px; height: 22px; color: var(--hue); }
+
+/* --- IA: modos, avisos, botones ----------------------------------------------- */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 13px; }
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  text-align: left;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.mode:hover { background: var(--card-hover); color: var(--fg); }
+.mode strong { display: block; font-size: 12.5px; font-weight: 600; }
+.mode small { display: block; font-size: 11px; color: var(--faint); }
+.mode[aria-checked="true"] { color: var(--fg); border-color: var(--line-strong); background: color-mix(in oklab, var(--fg) 6%, var(--bg)); }
+.mode[aria-checked="true"] .icon { color: var(--accent); }
+.link { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--vscode-textLink-foreground); max-width: 100%; }
+.link span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link:hover { text-decoration: underline; }
+.icon-btn { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 5px; color: var(--muted); align-self: flex-start; }
+.icon-btn:hover { color: var(--fg); background: var(--card-hover); }
+
+.notice {
+  display: flex;
+  gap: 9px;
+  margin-top: 10px;
+  padding: 10px 11px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  background: var(--bg);
+}
+.notice.warn { border-left-color: var(--warn); }
+.notice > .icon { margin-top: 1px; color: var(--accent); }
+.notice.warn > .icon { color: var(--warn); }
+.notice p { color: var(--muted); margin: 0 0 6px; }
+.notice > p { margin: 0; }
+.notice p:last-child { margin-bottom: 0; }
+
+.chip { display: inline-block; padding: 0 6px; border-radius: 999px; font-size: 10px; font-weight: 600; vertical-align: 1px; color: var(--hue); background: color-mix(in oklab, var(--hue) 14%, transparent); }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  transition: background 0.15s;
+}
+.btn .icon { width: 14px; height: 14px; }
+.btn:hover:not(:disabled) { background: var(--vscode-button-hoverBackground); }
+.btn:disabled { opacity: 0.5; }
+.btn.ghost { color: var(--fg); background: transparent; border: 1px solid var(--line-strong); }
+.btn.ghost:hover:not(:disabled) { background: var(--card-hover); }
+.btn.wide { width: 100%; padding: 6px 11px; }
+.row-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* --- Herramienta abierta: formulario y resultado -------------------------------- */
+.tool.open > .tile { background: color-mix(in oklab, var(--hue) 6%, var(--bg)); box-shadow: inset 2px 0 0 var(--hue); }
+.tool-form { display: flex; flex-direction: column; gap: 10px; padding: 11px; border-top: 1px solid var(--line); background: var(--bg); }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 11.5px; color: var(--muted); }
+textarea, select {
+  width: 100%;
+  font: inherit;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, var(--line-strong));
+  border-radius: 5px;
+  padding: 5px 7px;
+}
+textarea { resize: vertical; font-family: var(--vscode-editor-font-family); font-size: 12px; line-height: 1.45; }
+select { color: var(--vscode-dropdown-foreground); background: var(--vscode-dropdown-background); border-color: var(--vscode-dropdown-border, var(--line)); }
+textarea:focus, select:focus { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
+textarea::placeholder { color: var(--faint); }
+
+.result { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px dashed var(--line-strong); }
+.markdown { font-size: 12.5px; overflow-wrap: anywhere; }
+.markdown h4 { margin: 12px 0 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hue); }
+.markdown h4:first-child { margin-top: 0; }
+.markdown p { margin: 0 0 6px; }
+.markdown ul, .markdown ol { margin: 0 0 6px; padding-left: 20px; }
+.markdown li + li { margin-top: 2px; }
+.markdown code { padding: 0 3px; border-radius: 3px; background: color-mix(in oklab, var(--fg) 9%, transparent); }
+.markdown pre { margin: 0 0 8px; padding: 8px 10px; overflow-x: auto; border-radius: 5px; border: 1px solid var(--line); background: var(--card); }
+.markdown pre code { padding: 0; background: none; font-size: 12px; }
+
+/* --- Animalitos -------------------------------------------------------------------- */
+.animal {
+  --fur: #f4b266; --belly: #fff1da; --dark: #b97a45; --inner: #f7b9bf; --eye: #2b2430; --nose: #ec8f9a; --beak: #f6a932; --blush: #ff8fa3;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.animal.sp-perro { --fur: #dba972; --belly: #fdebd3; --dark: #8a5a34; }
+.animal.sp-conejo { --fur: #f3eee8; --belly: #ffffff; --inner: #f8bcc8; }
+.animal.sp-pinguino { --fur: #3a4252; --belly: #fbfbfb; --dark: #2c3340; --blush: #ff9fae; }
+.animal .fur { fill: var(--fur); }
+.animal .dark { fill: var(--dark); }
+.animal .belly { fill: var(--belly); }
+.animal .inner { fill: var(--inner); }
+.animal .beak { fill: var(--beak); }
+.animal .nose { fill: var(--nose); }
+.animal .nose-dark { fill: #2b2430; }
+.animal .puff { fill: #fff; stroke: color-mix(in oklab, var(--fg) 12%, transparent); }
+.animal .shadow { fill: color-mix(in oklab, var(--fg) 14%, transparent); animation: shadow-breathe 3.2s ease-in-out infinite; transform-origin: 50px 99px; }
+.animal .gloss { fill: #fff; opacity: 0.22; }
+.animal .stripes { fill: none; stroke: var(--dark); stroke-width: 2.4; stroke-linecap: round; opacity: 0.45; }
+.animal .toes { fill: none; stroke: var(--dark); stroke-width: 1; stroke-linecap: round; opacity: 0.35; }
+.animal.sp-conejo .toes, .animal.sp-gato .toes { opacity: 0.25; }
+.animal .tail { fill: none; stroke: var(--fur); stroke-width: 8; stroke-linecap: round; }
+.animal .whisk { fill: none; stroke: color-mix(in oklab, var(--fg) 40%, transparent); stroke-width: 1.2; stroke-linecap: round; transform-origin: 50px 56px; animation: whisk 3.6s ease-in-out infinite; }
+.animal .cheek { fill: var(--blush); opacity: 0.5; animation: cheek 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.animal .pupil { fill: var(--eye); }
+.animal .shine { fill: #fff; }
+.animal .eyes-open { transform-origin: 50px 48px; animation: blink 4.6s infinite; }
+.animal .look { animation: look 7s ease-in-out infinite; }
+.animal .eyes-happy, .animal .eyes-closed { fill: none; stroke: var(--eye); stroke-width: 3; stroke-linecap: round; }
+.animal .brow { fill: none; stroke: var(--eye); stroke-width: 2.4; stroke-linecap: round; opacity: 0.7; }
+.animal .drop { fill: #8fd3ff; animation: drip 2.4s ease-in infinite; }
+.animal .m-smile, .animal .m-sad, .animal .m-flat { fill: none; stroke: #2b2430; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.animal .m-open ellipse:first-child, .animal .m-o { fill: #6e2a39; }
+.animal .tongue, .animal .tongue-out { fill: #ff8fa3; }
+.animal .tooth { fill: #fff; stroke: color-mix(in oklab, #2b2430 25%, transparent); stroke-width: 0.5; }
+
+/* Qué cara se ve en cada estado */
+.animal .face > .eyes-open, .animal .face > .eyes-happy, .animal .face > .eyes-sad, .animal .face > .eyes-closed,
+.animal .face > .m-smile, .animal .face > .m-open, .animal .face > .m-sad, .animal .face > .m-flat, .animal .face > .m-o, .animal .face > .tongue-out, .animal .face > .tooth { display: none; }
+.animal:is(.mood-idle, .mood-think, .mood-eating, .mood-balloon) .face > .eyes-open { display: inline; }
+.animal:is(.mood-happy, .mood-exercise) .face > .eyes-happy { display: inline; }
+.animal.mood-hungry .face > .eyes-sad { display: inline; }
+.animal.mood-frozen .face > .eyes-closed { display: inline; }
+.animal:is(.mood-idle, .mood-think, .mood-happy, .mood-exercise) .face > .m-smile { display: inline; }
+.animal.sp-perro:is(.mood-happy, .mood-exercise) .face > .tongue-out { display: inline; }
+.animal.sp-conejo:is(.mood-idle, .mood-think) .face > .tooth { display: inline; }
+.animal.mood-eating .face > .m-open { display: inline; transform-origin: 50px 62px; animation: chew 0.35s ease-in-out infinite; }
+.animal.mood-hungry .face > .m-sad { display: inline; }
+.animal.mood-balloon .face > .m-o { display: inline; }
+.animal.mood-frozen .face > .m-flat { display: inline; }
+/* El pingüino tiene pico en vez de boca. */
+.animal.sp-pinguino .face > :is(.m-smile, .m-sad, .m-flat, .m-o, .m-open, .tongue-out, .tooth) { display: none; }
+.animal.sp-pinguino.mood-eating .beak-top { animation: peck 0.35s ease-in-out infinite; transform-origin: 50px 54px; }
+
+/* Extras que solo aparecen en algunos estados */
+.animal .dumbbell, .animal .balloon-string, .animal .glyphs, .animal .sweat, .animal .hearts, .animal .sparkles, .animal .rumble, .animal .bubble, .animal .ice { display: none; }
+.animal .dumbbell path { stroke: var(--fg); stroke-width: 3.200; stroke-linecap: round; fill: none; }
+.animal .dumbbell rect { fill: color-mix(in oklab, var(--fg) 72%, var(--bg)); }
+.animal .balloon-string path { fill: none; stroke: color-mix(in oklab, var(--fg) 55%, transparent); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.animal .glyphs text { font: 700 8px var(--vscode-editor-font-family, monospace); fill: var(--hue, var(--accent)); animation: glyph 1.3s ease-in infinite; }
+.animal .glyphs text:nth-child(2) { animation-delay: 0.45s; }
+.animal .glyphs text:nth-child(3) { animation-delay: 0.9s; }
+.animal .sweat { fill: #8fd3ff; animation: sweat 0.9s ease-in infinite; }
+.animal .heart { fill: #ff6b8b; animation: heart 2.2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.animal .heart.h2 { animation-delay: 0.7s; }
+.animal .heart.h3 { animation-delay: 1.4s; }
+.animal .spark { fill: none; stroke: #ffd24d; stroke-width: 2; stroke-linecap: round; animation: twinkle 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.animal .spark.s2 { animation-delay: 0.6s; }
+.animal .rumble { fill: none; stroke: color-mix(in oklab, var(--fg) 45%, transparent); stroke-width: 1.6; stroke-linecap: round; animation: rumble 0.4s linear infinite; }
+.animal .bubble circle, .animal .bubble ellipse { fill: var(--bg); stroke: var(--line-strong); stroke-width: 1.2; }
+.animal .bubble text { font-size: 11px; fill: var(--fg); }
+.animal .ice rect { fill: #a8dcff; fill-opacity: 0.34; stroke: #d9f1ff; stroke-width: 2.4; }
+.animal .ice path { stroke: #eaf8ff; stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.animal .ice .shine-ice { animation: twinkle 2.4s ease-in-out infinite; }
+
+/* Movimiento base: respirar, mover orejas y cola */
+.pet-all { transform-origin: 50px 96px; animation: breathe 3.2s ease-in-out infinite; }
+.animal .head { transform-origin: 50px 66px; animation: head-bob 4.4s ease-in-out infinite; }
+.animal .tail { transform-origin: 72px 88px; animation: tail-wag 2.2s ease-in-out infinite; }
+.animal .tail-dog { transform-origin: 70px 84px; animation: tail-wag 1.6s ease-in-out infinite; }
+.animal .puff { transform-origin: 72px 90px; animation: puff 2.6s ease-in-out infinite; }
+.animal .ear-l { transform-origin: 32px 32px; animation: ear-twitch 5.5s infinite; }
+.animal .ear-r { transform-origin: 68px 32px; animation: ear-twitch-r 6.5s infinite 1s; }
+.animal.sp-perro .ear-l { transform-origin: 22px 34px; animation: ear-sway 3.4s ease-in-out infinite; }
+.animal.sp-perro .ear-r { transform-origin: 78px 34px; animation: ear-sway-r 3.4s ease-in-out infinite; }
+.animal.sp-conejo .ear-l { transform-origin: 36px 30px; animation: ear-sway 4.2s ease-in-out infinite; }
+.animal.sp-conejo .ear-r { transform-origin: 64px 30px; animation: ear-sway-r 4.8s ease-in-out infinite; }
+.animal .arm-l { transform-origin: 29px 70px; }
+.animal .arm-r { transform-origin: 71px 70px; }
+
+/* Estados */
+.mood-think .head { animation: head-tilt 3s ease-in-out infinite; }
+.mood-think .tail, .mood-happy .tail, .mood-exercise .tail { animation-duration: 0.7s; }
+.mood-happy .tail-dog, .mood-exercise .tail-dog { animation-duration: 0.35s; }
+.mood-think .bubble-think { display: inline; }
+.mood-happy .pet-all { animation: hop 1.6s ease-in-out infinite; }
+.mood-happy .hearts, .mood-happy .sparkles { display: inline; }
+.mood-happy .arm-l { animation: wave 0.9s ease-in-out infinite; }
+.mood-exercise .pet-all { animation: bounce 0.6s ease-in-out infinite; }
+.mood-exercise .dumbbell { display: inline; animation: lift 0.6s ease-in-out infinite; }
+.mood-exercise .sweat { display: inline; }
+.mood-exercise .arm-l { animation: pump-l 0.6s ease-in-out infinite; }
+.mood-exercise .arm-r { animation: pump-r 0.6s ease-in-out infinite; }
+.mood-exercise .ear-l, .mood-exercise .ear-r { animation-duration: 0.6s; }
+.mood-eating .glyphs { display: inline; }
+.mood-eating .head { animation: nom 0.7s ease-in-out infinite; }
+.mood-hungry .pet-all { animation: droop 2.6s ease-in-out infinite; }
+.mood-hungry .bubble-hungry, .mood-hungry .rumble { display: inline; }
+.mood-hungry .tail, .mood-hungry .tail-dog { animation: none; }
+.mood-hungry.sp-gato .ear-l { transform: rotate(-14deg); animation: none; }
+.mood-hungry.sp-gato .ear-r { transform: rotate(14deg); animation: none; }
+.mood-hungry.sp-conejo .ear-l { transform: rotate(-38deg); animation: none; }
+.mood-hungry.sp-conejo .ear-r { transform: rotate(38deg); animation: none; }
+.mood-hungry.sp-perro .ear-l { transform: rotate(8deg); animation: none; }
+.mood-hungry.sp-perro .ear-r { transform: rotate(-8deg); animation: none; }
+.mood-hungry .head { animation: head-sad 3s ease-in-out infinite; }
+.mood-balloon .body { transform: scale(1.3); transform-origin: 50px 62px; animation: wobble 2.2s ease-in-out infinite; }
+.mood-balloon .pet-all { animation: float 2.6s ease-in-out infinite; }
+.mood-balloon .balloon-string { display: inline; }
+.mood-balloon .cheek { opacity: 0.85; }
+.mood-frozen .pet-all, .mood-frozen .head, .mood-frozen .tail, .mood-frozen .tail-dog, .mood-frozen .ear, .mood-frozen .eyes-open, .mood-frozen .puff { animation: none; }
+.mood-frozen .pet-all { filter: saturate(0.55) hue-rotate(150deg) brightness(1.08); }
+.mood-frozen .ice { display: inline; }
+.animal .body { transition: transform 0.6s cubic-bezier(0.3, 1.6, 0.5, 1); }
+
+@keyframes breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.03); } }
+@keyframes shadow-breathe { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.94); } }
+@keyframes head-bob { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-1px) rotate(-1.5deg); } 70% { transform: translateY(0.5px) rotate(1.5deg); } }
+@keyframes head-tilt { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(7deg); } }
+@keyframes head-sad { 0%, 100% { transform: translateY(2px) rotate(-3deg); } 50% { transform: translateY(3px) rotate(3deg); } }
+@keyframes nom { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
+@keyframes hop { 0%, 40%, 100% { transform: translateY(0) scale(1, 1); } 20% { transform: translateY(-7px) scale(0.98, 1.04); } 50% { transform: translateY(0) scale(1.04, 0.95); } }
+@keyframes bounce { 0%, 100% { transform: translateY(0) scale(1.04, 0.94); } 50% { transform: translateY(-10px) scale(0.97, 1.05); } }
+@keyframes lift { 0%, 100% { transform: translateY(4px); } 50% { transform: translateY(-4px); } }
+@keyframes pump-l { 0%, 100% { transform: rotate(150deg); } 50% { transform: rotate(175deg); } }
+@keyframes pump-r { 0%, 100% { transform: rotate(-150deg); } 50% { transform: rotate(-175deg); } }
+@keyframes wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-35deg); } }
+@keyframes droop { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.02, 0.95); } }
+@keyframes float { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(-10px); } }
+@keyframes wobble { 0%, 100% { rotate: -2.5deg; } 50% { rotate: 2.5deg; } }
+@keyframes tail-wag { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(14deg); } }
+@keyframes puff { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes ear-twitch { 0%, 90%, 100% { transform: rotate(0); } 93% { transform: rotate(-9deg); } 96% { transform: rotate(2deg); } }
+@keyframes ear-twitch-r { 0%, 90%, 100% { transform: rotate(0); } 93% { transform: rotate(9deg); } 96% { transform: rotate(-2deg); } }
+@keyframes ear-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(5deg); } }
+@keyframes ear-sway-r { 0%, 100% { transform: rotate(3deg); } 50% { transform: rotate(-5deg); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.08); } }
+@keyframes look { 0%, 12%, 100% { transform: translate(0, 0); } 25%, 45% { transform: translate(-2px, 0.5px); } 60%, 80% { transform: translate(2px, -0.5px); } }
+@keyframes cheek { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.65; } }
+@keyframes whisk { 0%, 85%, 100% { transform: rotate(0); } 90% { transform: rotate(3deg); } 95% { transform: rotate(-2deg); } }
+@keyframes drip { 0% { transform: translateY(-1px); opacity: 0.9; } 100% { transform: translateY(9px); opacity: 0; } }
+@keyframes chew { 0%, 100% { transform: scale(1, 0.45); } 50% { transform: scale(1.1, 1.15); } }
+@keyframes peck { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.6); } }
+@keyframes glyph { 0% { transform: translateY(-4px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(40px); opacity: 0; } }
+@keyframes sweat { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(16px); opacity: 0; } }
+@keyframes heart { 0% { transform: translateY(6px) scale(0.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-16px) scale(1.15); opacity: 0; } }
+@keyframes twinkle { 0%, 100% { transform: scale(0.5); opacity: 0.3; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes rumble { 0% { transform: translateX(-0.6px); } 50% { transform: translateX(0.6px); } 100% { transform: translateX(-0.6px); } }
+
+/* --- Tarjeta del animalito y de Michi ---------------------------------------------- */
+.pet, .colors { display: flex; flex-direction: column; gap: 10px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; }
+.switch { position: relative; flex: none; width: 32px; height: 18px; border-radius: 9px; background: color-mix(in oklab, var(--fg) 18%, transparent); transition: background 0.2s; }
+.switch span { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); transition: transform 0.2s; }
+.switch[aria-checked="true"] { background: var(--hue, var(--accent)); }
+.switch[aria-checked="true"] span { transform: translateX(14px); }
+.pet-stage.paused { opacity: 0.55; filter: grayscale(0.6); }
+.pet-stage.paused * { animation-play-state: paused !important; }
+.pet-stage { width: 150px; height: 150px; margin: 0 auto; }
+.pet-stage.small { width: 96px; height: 96px; margin: 0; flex: none; }
+.pet-text { text-align: center; font-size: 12.5px; }
+.species-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.species {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  transition: border-color 0.15s, background 0.15s;
+}
+.species:hover { background: var(--card-hover); color: var(--fg); }
+.species[aria-checked="true"] { color: var(--fg); border-color: var(--hue); background: color-mix(in oklab, var(--hue) 10%, var(--bg)); }
+.species-pic { width: 46px; height: 46px; }
+.species:hover .animal .head, .species[aria-checked="true"] .animal .head { animation: head-tilt 1.2s ease-in-out infinite; }
+.species small { font-size: 10.5px; }
+.meters { display: flex; flex-direction: column; gap: 6px; }
+.meter { display: grid; grid-template-columns: 92px 1fr auto; align-items: center; gap: 8px; font-size: 11.5px; color: var(--muted); }
+.meter b { font-weight: 500; color: var(--fg); white-space: nowrap; }
+progress { width: 100%; height: 6px; appearance: none; border: 0; border-radius: 3px; overflow: hidden; background: var(--line); }
+progress::-webkit-progress-bar { background: var(--line); }
+progress::-webkit-progress-value { background: var(--hue); border-radius: 3px; transition: width 0.3s; }
+.pet-rules { margin: 0; padding-left: 18px; font-size: 11.5px; color: var(--muted); list-style: none; padding: 0; }
+.pet-rules li { padding: 2px 0; }
+
+.michi { display: flex; align-items: center; gap: 10px; }
+.bubble-text {
+  position: relative;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+}
+.bubble-text::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translateY(-50%) rotate(45deg);
+  border-left: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--card);
+}
+
+/* --- Extractor de colores ---------------------------------------------------------- */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
+.swatch { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px; border-radius: 6px; font-size: 10.5px; font-family: var(--vscode-editor-font-family); color: var(--muted); }
+.swatch:hover { background: var(--card-hover); color: var(--fg); }
+.swatch svg { width: 100%; height: auto; }
+.ok-line { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ok); }
+.ok-line .icon { width: 14px; height: 14px; }
+
+/* --- Sombrero animado ----------------------------------------------------------- */
+.logo .wand { transform-origin: 11px 10px; }
+.logo.intro .wand, .logo:hover .wand { animation: wand-wave 2.4s ease-in-out 2; }
+.logo.intro .spark, .logo:hover .spark { animation: spark-twinkle 1.2s ease-in-out 4; }
+.logo.intro::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in oklab, var(--vscode-focusBorder, #4a7fd1) 60%, transparent);
+  opacity: 0;
+  animation: logo-ping 2.4s ease-out 2;
+}
+@keyframes wand-wave {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-9deg); }
+  55% { transform: rotate(6deg); }
+  80% { transform: rotate(-4deg); }
+}
+@keyframes spark-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes logo-ping {
+  0% { opacity: 0.9; transform: scale(0.92); }
+  70%, 100% { opacity: 0; transform: scale(1.18); }
+}
+
+/* --- Créditos ------------------------------------------------------------------- */
+.credits {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--faint);
+}
+.credits .icon { width: 13px; height: 13px; }
+.credits a { color: var(--vscode-textLink-foreground); text-decoration: none; font-weight: 500; }
+.credits a:hover { text-decoration: underline; }
+
+@media (max-width: 300px) {
+  .tab span { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

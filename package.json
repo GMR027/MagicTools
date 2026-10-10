@@ -1,0 +1,183 @@
+{
+  "name": "magictools",
+  "displayName": "MagicTools — Herramientas para programar",
+  "description": "Un panel con herramientas para cada nivel (Starter, Junior y Senior), con IA local (Ollama) o por API.",
+  "version": "0.2.0",
+  "publisher": "edgar",
+  "author": {
+    "name": "GMR027",
+    "url": "https://github.com/GMR027"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "tools",
+    "utilities",
+    "starter",
+    "junior",
+    "senior"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "magictools.openPanel",
+        "title": "MagicTools: Abrir panel"
+      },
+      {
+        "command": "magictools.tool.function-tree",
+        "title": "MagicTools: Árbol de función (cursor o selección)"
+      },
+      {
+        "command": "magictools.refreshPanel",
+        "title": "Actualizar",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "magictools.configureApi",
+        "title": "MagicTools: Configurar proveedor API"
+      },
+      {
+        "command": "magictools.setApiKey",
+        "title": "MagicTools: Guardar API key"
+      },
+      {
+        "command": "magictools.clearApiKey",
+        "title": "MagicTools: Borrar API key"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "magictools",
+          "title": "MagicTools",
+          "icon": "media/magictools.svg"
+        }
+      ]
+    },
+    "views": {
+      "magictools": [
+        {
+          "type": "webview",
+          "id": "magictools.panel",
+          "name": "MagicTools"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "magictools.refreshPanel",
+          "when": "view == magictools.panel",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "MagicTools",
+      "properties": {
+        "magictools.mode": {
+          "type": "string",
+          "enum": [
+            "local",
+            "api"
+          ],
+          "enumDescriptions": [
+            "Un modelo en tu equipo con Ollama",
+            "Un proveedor en la nube (Claude, Codestral, compatible con OpenAI)"
+          ],
+          "default": "local",
+          "description": "De dónde sale la IA de las herramientas."
+        },
+        "magictools.local.url": {
+          "type": "string",
+          "default": "",
+          "description": "URL de Ollama. Vacío = la de GhostCode si está instalada, o http://localhost:11434."
+        },
+        "magictools.local.chatModel": {
+          "type": "string",
+          "default": "",
+          "description": "Modelo de chat (que siga instrucciones). Vacío = automático: primero el que ya esté cargado en Ollama (p. ej. por GhostCode) para no cargar dos."
+        },
+        "magictools.language": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "es",
+            "en",
+            "pt",
+            "fr",
+            "de",
+            "it"
+          ],
+          "default": "auto",
+          "description": "Idioma de las respuestas de la IA. «auto» usa el de VS Code."
+        },
+        "magictools.api.provider": {
+          "type": "string",
+          "enum": [
+            "anthropic",
+            "codestral",
+            "openai-compatible"
+          ],
+          "default": "anthropic",
+          "description": "Proveedor del modo API."
+        },
+        "magictools.api.model": {
+          "type": "string",
+          "default": "",
+          "description": "Modelo del proveedor. Vacío = el predeterminado."
+        },
+        "magictools.api.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL base del proveedor (obligatoria en «openai-compatible»)."
+        },
+        "magictools.pet.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mi animalito: cuenta las letras que escribes (nunca guarda tu código) para alimentarlo. Desactívalo para pausarlo."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node esbuild.mjs --tests && node --test out/test/*.test.js",
+    "package": "npm run typecheck && node esbuild.mjs --production && mkdir -p dist-vsix && vsce package --no-dependencies --allow-missing-repository -o dist-vsix/magictools-$npm_package_version.vsix",
+    "vscode:prepublish": "node esbuild.mjs --production"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "En carpetas no confiables MagicTools ignora la configuración del espacio de trabajo que decide a qué servidor se envía el código.",
+      "restrictedConfigurations": [
+        "magictools.mode",
+        "magictools.local.url",
+        "magictools.api.provider",
+        "magictools.api.baseUrl",
+        "magictools.api.model"
+      ]
+    }
+  }
+}
