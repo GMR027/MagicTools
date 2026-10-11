@@ -3,7 +3,7 @@
 /* global acquireVsCodeApi */
 const vscode = acquireVsCodeApi();
 const app = /** @type {HTMLElement} */ (document.getElementById("app"));
-/** @type {{ tab?: string, open?: string, colors?: { count: string, format: string } }} */
+/** @type {{ tab?: string, open?: string, colors?: { count: string, format: string }, structure?: { template: string, where: string } }} */
 const saved = vscode.getState() || {};
 /** Lo escrito en los campos: se conserva aunque el panel se vuelva a pintar. @type {Record<string, string>} */
 const drafts = {};
@@ -60,6 +60,12 @@ app.addEventListener("click", (e) => {
     vscode.postMessage({ type: "pickImage", count, format });
     return;
   }
+  if (el.dataset.action === "createStructure") {
+    const template = /** @type {HTMLSelectElement} */ (document.getElementById("structure-template")).value;
+    const where = /** @type {HTMLSelectElement} */ (document.getElementById("structure-where")).value;
+    vscode.postMessage({ type: "createStructure", template, where });
+    return;
+  }
   if (el.dataset.action === "toggleTool") {
     saved.open = saved.open === el.dataset.id ? undefined : el.dataset.id;
     vscode.setState(saved);
@@ -87,6 +93,19 @@ app.addEventListener("input", (e) => {
 app.addEventListener("change", (e) => {
   const el = /** @type {HTMLInputElement} */ (e.target);
   if (el.dataset.field) drafts[el.dataset.field] = el.value;
+  if (el.dataset.field?.startsWith("workshop-") && el.dataset.field.endsWith(":kind")) {
+    render();
+    return;
+  }
+  if (el.id === "structure-template" || el.id === "structure-where") {
+    saved.structure = {
+      template: /** @type {HTMLSelectElement} */ (document.getElementById("structure-template")).value,
+      where: /** @type {HTMLSelectElement} */ (document.getElementById("structure-where")).value,
+    };
+    vscode.setState(saved);
+    render();
+    return;
+  }
   if (el.id === "colors-count" || el.id === "colors-format") {
     saved.colors = {
       count: /** @type {HTMLSelectElement} */ (document.getElementById("colors-count")).value,
@@ -110,6 +129,7 @@ const PATHS = {
   cat: '<path d="M5 11 4 4l4 2.5a8 8 0 0 1 8 0L20 4l-1 7a7 7 0 1 1-14 0z"/><path d="M9.5 12v.5M14.5 12v.5M11 15.5h2"/>',
   palette: '<path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.8 2-1.8 0-1-.8-1.4-.8-2.4 0-.9.7-1.6 1.7-1.6H17a4 4 0 0 0 4-4C21 6.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/>',
   paw: '<circle cx="6" cy="11" r="1.8"/><circle cx="10" cy="6.5" r="1.8"/><circle cx="14" cy="6.5" r="1.8"/><circle cx="18" cy="11" r="1.8"/><path d="M12 12c-3 0-5.5 3-5.5 5.2 0 1.6 1.3 2.3 2.6 2.3 1 0 1.8-.5 2.9-.5s1.9.5 2.9.5c1.3 0 2.6-.7 2.6-2.3C17.5 15 15 12 12 12z"/>',
+  folder: '<path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>',
   tree: '<rect x="3" y="3" width="6" height="4" rx="1"/><rect x="15" y="10" width="6" height="4" rx="1"/><rect x="15" y="17" width="6" height="4" rx="1"/><path d="M6 7v12h9M6 12h9"/>',
   bug: '<path d="M9 9a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0z"/><path d="M12 9v9M9 11H5M15 11h4M9 15H5.5M15 15h3.5M10 6 8.5 4M14 6l1.5-2"/>',
   bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.1V16h5v-.1c0-.8.4-1.6 1.1-2.1A6 6 0 0 0 12 3z"/>',
@@ -140,11 +160,19 @@ const current = () => (state.tabs.some((/** @type {any} */ t) => t.id === saved.
 const logo = document.createElement("div");
 logo.className = "logo intro";
 logo.setAttribute("aria-hidden", "true");
-logo.innerHTML = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <ellipse cx="11" cy="10.5" rx="8" ry="2.3"/>
-  <path d="M5 10.8l1.6 8c.2 1 2.3 1.9 4.4 1.9s4.2-.9 4.4-1.9l1.6-8"/>
-  <g class="wand"><path d="M11 10 18.5 3.2"/><path class="spark" d="M20.5 1.5v2.4M19.3 2.7h2.4"/></g>
-  <path class="spark" d="M21 8.2v1.8M20.1 9.1h1.8" stroke-width="1.2"/>
+logo.innerHTML = `<svg class="icon" viewBox="0 0 32 32" fill="none" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round">
+  <ellipse class="hat-brim" cx="13" cy="26.4" rx="10.8" ry="3.2"/>
+  <path class="hat-crown" d="M7.5 25.6V11.6C7.5 10 10 9.2 13 9.2s5.5.8 5.5 2.4v14c0 1.2-2.4 2.2-5.5 2.2s-5.5-1-5.5-2.2z"/>
+  <path class="hat-band" d="M7.5 20.2c0 1.2 2.4 2.2 5.5 2.2s5.5-1 5.5-2.2v2.6c0 1.2-2.4 2.2-5.5 2.2s-5.5-1-5.5-2.2z"/>
+  <ellipse class="hat-mouth" cx="13" cy="11.4" rx="5.5" ry="2.1"/>
+  <g class="wand">
+    <path class="wand-edge" d="M13.6 11.2 25.6 4.4"/>
+    <path class="wand-body" d="M13.6 11.2 25.6 4.4"/>
+    <path class="wand-grip" d="M13.6 11.2 16.4 9.6"/>
+    <path class="spark star" d="M27 .9l1.1 3 3 1.1-3 1.1-1.1 3-1.1-3-3-1.1 3-1.1z"/>
+  </g>
+  <path class="spark plus" d="M28.8 14v3.6M27 15.8h3.6"/>
+  <circle class="spark dot" cx="21" cy="1.8" r=".9"/>
 </svg>`;
 // Pasado el saludo inicial, solo se anima al pasar el puntero.
 setTimeout(() => logo.classList.remove("intro"), 6000);
@@ -251,8 +279,7 @@ function field(s, tool, f) {
   return `<div class="field">${label}<textarea id="f-${esc(key)}" rows="${f.optional ? 3 : 5}" data-field="${esc(key)}" placeholder="${esc(f.placeholder ?? "")}" spellcheck="false">${esc(value ?? "")}</textarea></div>`;
 }
 
-function result(s, tool) {
-  const r = s.results[tool.id];
+function result(s, tool, r = s.results[tool.id]) {
   if (!r) return "";
   const hasCode = r.text.includes("```");
   return `<div class="result">
@@ -260,6 +287,7 @@ function result(s, tool) {
     <div class="row-btns">
       <button class="btn ghost" data-action="copy" data-id="${esc(tool.id)}">${icon("copy")}Copiar</button>
       ${hasCode ? `<button class="btn ghost" data-action="copyCode" data-id="${esc(tool.id)}">${icon("copy")}Copiar código</button>
+      <button class="btn ghost" data-action="applyCode" data-id="${esc(tool.id)}" title="Muestra los cambios en el editor antes de aplicarlos">${icon("code")}Comparar y aplicar</button>
       <button class="btn ghost" data-action="insertCode" data-id="${esc(tool.id)}">${icon("filePlus")}Abrir en archivo</button>` : ""}
       <button class="btn ghost" data-action="clearResult" data-id="${esc(tool.id)}">${icon("close")}Cerrar</button>
     </div>
@@ -372,7 +400,9 @@ const meter = (/** @type {string} */ label, /** @type {number} */ value, /** @ty
 function petCard(s) {
   const p = s.pet;
   const text = p.enabled ? p.text : `${p.name} está en pausa: no cuento lo que escribes. Actívalo cuando quieras.`;
-  return `<div class="pet-stage${p.enabled ? "" : " paused"}">${animalSvg(p.species, p.enabled ? p.mood : "idle")}</div>
+  // Con una cara de El Taller se muestra esa imagen (un <img>: nunca HTML crudo); si no, el animalito de siempre.
+  const stage = s.petIcon ? `<img class="pet-custom" src="${esc(s.petIcon)}" alt="Cara de ${esc(p.name)}">` : animalSvg(p.species, p.enabled ? p.mood : "idle");
+  return `<div class="pet-stage${p.enabled ? "" : " paused"}">${stage}</div>
     <p class="pet-text" role="status">${esc(text)}</p>
     <div class="meters">
       ${meter("Comida", p.food, 100)}
@@ -394,6 +424,7 @@ function petWidget(s) {
     <p class="field-label">Elige tu animalito</p>
     <div class="species-row" role="radiogroup" aria-label="Animalito">${choices}</div>
     <div id="pet-card">${petCard(s)}</div>
+    ${s.petIcon ? `<button class="btn ghost" data-action="petIconClear" title="Borra .magictools/pet-icon.svg">${icon("close")}Volver al animalito original</button>` : ""}
     <ul class="pet-rules">
       <li>✍️ Lo que escribes <strong>a mano</strong> lo alimenta: se pone contento y hace ejercicio.</li>
       <li>🎈 El código que aparece de golpe (IA) lo <strong>infla</strong> como un globo.</li>
@@ -429,6 +460,120 @@ function colorsWidget(s) {
   </div>`;
 }
 
+/** Árbol de carpetas en texto (con «├─» y «└─») a partir de rutas relativas. */
+function treeLines(paths, root) {
+  /** @type {{ dir: boolean, kids: Record<string, any> }} */
+  const top = { dir: true, kids: {} };
+  for (const p of paths) {
+    const parts = p.split("/");
+    let n = top;
+    parts.forEach((part, i) => {
+      const isDir = i < parts.length - 1;
+      if (part === ".gitkeep") return; // solo sirve para que Git guarde la carpeta vacía
+      n.kids[part] ??= { dir: isDir, kids: {} };
+      n = n.kids[part];
+    });
+  }
+  const lines = [root + "/"];
+  /** @param {any} node @param {string} prefix */
+  const walk = (node, prefix) => {
+    const names = Object.keys(node.kids).sort((a, b) => (node.kids[a].dir === node.kids[b].dir ? a.localeCompare(b) : node.kids[a].dir ? -1 : 1));
+    names.forEach((name, i) => {
+      const last = i === names.length - 1;
+      const kid = node.kids[name];
+      lines.push(prefix + (last ? "└─ " : "├─ ") + name + (kid.dir ? "/" : ""));
+      if (kid.dir) walk(kid, prefix + (last ? "   " : "│  "));
+    });
+  };
+  walk(top, "");
+  return lines.join("\n");
+}
+
+function structureWidget(s) {
+  const prev = saved.structure ?? { template: s.templates[0].id, where: "here" };
+  const tpl = s.templates.find((/** @type {any} */ t) => t.id === prev.template) ?? s.templates[0];
+  const groups = s.templateGroups
+    .map(
+      (/** @type {string} */ g) => `<optgroup label="${esc(g)}">${s.templates
+        .filter((/** @type {any} */ t) => t.group === g)
+        .map((/** @type {any} */ t) => `<option value="${esc(t.id)}"${t.id === tpl.id ? " selected" : ""}>${esc(t.label)}</option>`)
+        .join("")}</optgroup>`,
+    )
+    .join("");
+  const here = s.projectFolder ? `En la carpeta abierta (${esc(s.projectFolder)})` : "En la carpeta abierta (ninguna)";
+  const root = prev.where === "new" ? "mi-proyecto" : s.projectFolder || "mi-proyecto";
+  const r = s.structure;
+  return `<div class="structure">
+    <div class="field"><label class="field-label" for="structure-template">Tipo de proyecto</label><select id="structure-template">${groups}</select></div>
+    <p class="muted">${esc(tpl.hint)}</p>
+    <div class="field"><label class="field-label" for="structure-where">Dónde crearlo</label>
+      <select id="structure-where"><option value="here"${prev.where === "here" ? " selected" : ""}>${here}</option><option value="new"${prev.where === "new" ? " selected" : ""}>En una carpeta nueva…</option></select></div>
+    <p class="field-label">Se creará</p>
+    <pre class="tree-preview" aria-label="Vista previa de la estructura">${esc(treeLines(tpl.paths, root))}</pre>
+    <button class="btn wide" data-action="createStructure">${icon("folder")}Crear estructura</button>
+    <p class="muted">No sobrescribe archivos que ya existan y no instala nada: el README.md creado dice qué comandos ejecutar.</p>
+    ${r ? `<p class="ok-line">${icon("check")}<span>${r.created} archivo(s) creados (${esc(r.template)})${r.skipped ? `, ${r.skipped} ya existían` : ""}.</span></p>` : ""}
+  </div>`;
+}
+
+/** Motivos por los que se descarta un SVG (ver extractSvg). */
+const SVG_PROBLEMS = {
+  none: "El modelo no devolvió ningún SVG. Prueba con otra descripción o con un modelo de código.",
+  invalid: "El SVG no estaba bien formado. Inténtalo de nuevo (con formas más simples suele salir mejor).",
+  unsafe: "El SVG llevaba elementos no permitidos (scripts, enlaces externos…) y se descartó por seguridad.",
+  "too-large": "El SVG salió demasiado grande. Pide algo más simple.",
+};
+
+/** El Taller: formulario según el tipo, vista previa segura del SVG y botones para guardarlo. */
+function workshopWidget(s, t, busy) {
+  const kindKey = `${t.id}:kind`;
+  const kindField = t.fields.find((/** @type {any} */ f) => f.id === "kind");
+  const kind = drafts[kindKey] ?? kindField.options[0];
+  const isIcon = kind === kindField.options[0];
+  const isCss = kind === kindField.options[1];
+  const isData = kind === kindField.options[2];
+  const visible = (/** @type {string} */ id) =>
+    id === "kind" || id === "description" || (id === "style" && isIcon) || (id === "csstype" && isCss) || ((id === "format" || id === "count") && isData);
+  const label = isIcon ? "Describe el icono o logo" : isCss ? "Describe la animación o el fondo" : "Esquema de los datos (campos y reglas)";
+  const placeholder = isIcon
+    ? "Ej.: un cohete pequeño con una estrella…"
+    : isCss
+      ? "Ej.: un loader de tres puntos que rebotan, en tonos morados…"
+      : "Ej.: usuarios con nombre, email, edad (18-65) y ciudad…";
+  const fields = t.fields
+    .filter((/** @type {any} */ f) => visible(f.id))
+    .map((/** @type {any} */ f) => (f.id === "description" ? field(s, t, { ...f, label, placeholder }) : field(s, t, f)))
+    .join("");
+  const disabled = busy || !!s.busy || !s.ai.ready;
+  const hw = s.hardware
+    ? `<div class="notice ${s.hardware.tier === 0 ? "warn" : "info"}" role="status">${icon(s.hardware.tier === 0 ? "warning" : "info")}<p>${esc(s.hardware.text)}</p></div>`
+    : "";
+  // Un resultado solo se muestra con el tipo que lo produjo (si cambias de tipo, no se mezclan).
+  const r = s.results[t.id]?.kind === kind || !s.results[t.id]?.kind ? s.results[t.id] : undefined;
+  let out = "";
+  if (r && isIcon && (r.svgUri || r.svgProblem)) {
+    out = `<div class="result">${
+      r.svgUri
+        ? `<div class="svg-preview"><img src="${esc(r.svgUri)}" alt="Vista previa del icono" width="128" height="128"></div>
+      <div class="row-btns">
+        <button class="btn ghost" data-action="workshopSave" data-id="${esc(t.id)}" title="Guarda el SVG en la carpeta assets/ del proyecto, sin pisar nada">${icon("filePlus")}Guardar en assets/…</button>
+        <button class="btn ghost" data-action="workshopCopy" data-id="${esc(t.id)}">${icon("copy")}Copiar</button>
+        <button class="btn ghost" data-action="workshopPet" data-id="${esc(t.id)}" title="Guarda una copia en .magictools/pet-icon.svg y la usa como cara de tu animalito">${icon("paw")}Usar como cara de mi animalito</button>
+        <button class="btn ghost" data-action="clearResult" data-id="${esc(t.id)}">${icon("close")}Cerrar</button>
+      </div>`
+        : `<div class="notice warn" role="status">${icon("warning")}<p>${esc(SVG_PROBLEMS[r.svgProblem] ?? SVG_PROBLEMS.invalid)}</p></div>
+      <div class="row-btns"><button class="btn ghost" data-action="clearResult" data-id="${esc(t.id)}">${icon("close")}Cerrar</button></div>`
+    }</div>`;
+  } else if (r) out = result(s, t, r);
+  return `<div class="workshop">
+    ${hw}
+    ${fields}
+    <button class="btn wide" data-action="runTool" data-id="${esc(t.id)}"${disabled ? " disabled" : ""}>${busy ? "Creando…" : esc(t.action)}</button>
+    ${!s.ai.ready ? `<p class="muted">La IA no está lista: revisa el aviso de arriba.</p>` : ""}
+    ${out}
+  </div>`;
+}
+
 function michi(s, busy, hasResult) {
   const say = busy ? "Mmm… déjame olfatear tu código…" : hasResult ? "¡Miau! Aquí tienes mi explicación 🐾" : "Pégame unas líneas de código y te las cuento a mi manera 🐾";
   return `<div class="michi"><div class="pet-stage small">${animalSvg("gato", busy ? "think" : "idle")}</div><p class="bubble-text" role="status">${esc(say)}</p></div>`;
@@ -438,16 +583,19 @@ function tool(s, t) {
   const open = saved.open === t.id;
   const busy = s.busy === t.id;
   if (t.command) {
-    return `<div class="tool"><button class="tile" data-action="runCommand" data-id="${esc(t.id)}">
+    return `<div class="tool"><button class="tile" data-tip="${esc(t.id)}" data-action="runCommand" data-id="${esc(t.id)}">
       <span class="tile-icon">${icon(t.icon ?? "wand")}</span>
       <span class="grow"><strong>${esc(t.title)}</strong><small>${esc(t.description)}</small></span></button></div>`;
   }
-  const head = `<button class="tile" data-action="toggleTool" data-id="${esc(t.id)}" aria-expanded="${open}">
+  const head = `<button class="tile" data-tip="${esc(t.id)}" data-action="toggleTool" data-id="${esc(t.id)}" aria-expanded="${open}">
       <span class="tile-icon">${icon(t.icon ?? "wand")}</span>
       <span class="grow"><strong>${esc(t.title)}${t.ai ? ' <span class="chip">IA</span>' : ""}</strong><small>${esc(t.description)}</small></span>
     </button>`;
   if (!open) return `<div class="tool">${head}</div>`;
-  if (t.widget) return `<div class="tool open">${head}<div class="tool-form">${t.widget === "pet" ? petWidget(s) : colorsWidget(s)}</div></div>`;
+  if (t.widget) {
+    const body = t.widget === "pet" ? petWidget(s) : t.widget === "structure" ? structureWidget(s) : t.widget === "workshop" ? workshopWidget(s, t, busy) : colorsWidget(s);
+    return `<div class="tool open">${head}<div class="tool-form">${body}</div></div>`;
+  }
   const disabled = busy || !!s.busy || (t.ai && !s.ai.ready);
   return `<div class="tool open">${head}
     <div class="tool-form">
@@ -492,7 +640,65 @@ function footer(s) {
   </footer>`;
 }
 
+// --- Tooltip con la explicación de cada herramienta (propio: los de «title» son lentos y no se pueden dar formato) ---
+const tip = document.createElement("div");
+tip.id = "mt-tip";
+tip.setAttribute("role", "tooltip");
+document.body.appendChild(tip);
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let tipTimer;
+/** @type {HTMLElement | null} */
+let tipFor = null;
+
+function hideTip() {
+  clearTimeout(tipTimer);
+  tip.classList.remove("show");
+  tipFor?.removeAttribute("aria-describedby");
+  tipFor = null;
+}
+
+/** @param {HTMLElement} el */
+function showTip(el) {
+  const id = el.dataset.tip;
+  const t = Object.values(state?.tools ?? {})
+    .flat()
+    .find((/** @type {any} */ x) => x.id === id);
+  const h = /** @type {any} */ (t)?.help;
+  if (!h) return;
+  tip.innerHTML = `<strong>${esc(/** @type {any} */ (t).title)}</strong>
+    <p>${esc(h.what)}</p>
+    <p class="tip-h">Cómo se usa</p><p>${esc(h.how)}</p>
+    <p class="tip-h">Ejemplo</p><p class="tip-ex">${esc(h.example)}</p>`;
+  tipFor = el;
+  el.setAttribute("aria-describedby", "mt-tip");
+  const r = el.getBoundingClientRect();
+  tip.style.maxWidth = `${Math.max(180, window.innerWidth - 16)}px`;
+  tip.classList.add("show");
+  const h2 = tip.offsetHeight;
+  // Debajo de la herramienta; si no cabe, encima.
+  const below = r.bottom + 4 + h2 <= window.innerHeight - 4;
+  tip.style.top = `${Math.max(4, below ? r.bottom + 4 : r.top - h2 - 4)}px`;
+  tip.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - tip.offsetWidth - 8))}px`;
+}
+
+app.addEventListener("mouseover", (e) => {
+  const el = /** @type {HTMLElement} */ (e.target).closest("[data-tip]");
+  if (el === tipFor) return;
+  hideTip();
+  if (el) tipTimer = setTimeout(() => showTip(/** @type {HTMLElement} */ (el)), 350);
+});
+app.addEventListener("mouseleave", hideTip);
+app.addEventListener("focusin", (e) => {
+  const el = /** @type {HTMLElement} */ (e.target).closest?.("[data-tip]");
+  if (el && el.matches(":focus-visible")) (hideTip(), showTip(/** @type {HTMLElement} */ (el)));
+});
+app.addEventListener("focusout", hideTip);
+app.addEventListener("click", hideTip, true);
+window.addEventListener("scroll", hideTip, true);
+document.addEventListener("keydown", (e) => e.key === "Escape" && hideTip());
+
 function render() {
+  hideTip();
   const s = state;
   const focused = /** @type {HTMLInputElement | null} */ (document.activeElement);
   const focus = focused?.id ? { id: focused.id, start: focused.selectionStart, end: focused.selectionEnd } : undefined;

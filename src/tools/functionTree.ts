@@ -22,7 +22,7 @@ export function trackEditors(context: vscode.ExtensionContext): void {
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((e) => e && (lastEditor = e)));
 }
 
-function pickEditor(): vscode.TextEditor | undefined {
+export function pickEditor(): vscode.TextEditor | undefined {
   const isCode = (e: vscode.TextEditor | undefined) => !!e && (e.document.uri.scheme === "file" || e.document.uri.scheme === "untitled");
   const candidates = [vscode.window.activeTextEditor, lastEditor, ...vscode.window.visibleTextEditors];
   return candidates.find((e) => isCode(e) && !e!.document.isClosed);

@@ -40,10 +40,10 @@ test("lenguajes de VS Code", () => {
 
 test("las herramientas incluidas son válidas", () => {
   assert.deepEqual(validateTools(TOOLS), []);
-  assert.deepEqual(TOOLS.map((t) => t.id), ["understand", "idea-to-code", "pet", "colors", "function-tree"]);
-  assert.deepEqual(TOOLS.filter((t) => t.tab === "junior").map((t) => t.id), ["colors", "function-tree"]);
+  assert.deepEqual(TOOLS.map((t) => t.id), ["understand", "diagnose", "hints", "idea-to-code", "structure", "pet", "saved-prompts", "smells", "project-summary", "gen-tests", "explain-diff", "impact", "secrets", "env-example", "team-rules", "split-fn", "clean-file", "code-review", "security-review", "complexity", "deps-map", "hotspots", "migrate", "postmortem", "colors", "workshop-starter", "workshop-junior", "workshop-senior", "function-tree"]);
+  assert.deepEqual(TOOLS.filter((t) => t.tab === "junior").map((t) => t.id), ["gen-tests", "explain-diff", "split-fn", "clean-file", "colors", "workshop-junior", "function-tree"]);
   for (const t of TOOLS.filter((x) => x.request)) {
-    assert.equal(t.tab, "starter");
+    assert.ok(["starter", "junior", "senior"].includes(t.tab));
     const values = Object.fromEntries((t.fields ?? []).map((f) => [f.id, "x"]));
     assert.ok(t.request!(values, "es").system.length > 0);
   }
@@ -75,4 +75,23 @@ test("«Entender» usa la voz de Michi para errores y para código", () => {
   assert.match(code.system, /Michi/);
   assert.match(code.user, /<code>\nprint\(1\)/);
   assert.doesNotMatch(errorRequest("e", undefined, "es").system, /Michi/);
+});
+
+test("explicación para 10 años y pistas progresivas", async () => {
+  const { EXPLAIN_LEVELS, HINT_LEVELS, hintRequest, isSimple } = await import("../src/core/prompts");
+  assert.ok(isSimple(EXPLAIN_LEVELS[1]) && !isSimple(EXPLAIN_LEVELS[0]));
+  assert.match(errorRequest("e", undefined, "es", true, true).system, /10 years old/);
+  assert.doesNotMatch(errorRequest("e", undefined, "es", true).system, /10 years old/);
+  assert.match(michiRequest("x=1", "es", true).system, /10 years old/);
+  assert.match(hintRequest("sumar pares", undefined, HINT_LEVELS[0], "es").system, /ONE hint only/);
+  const sol = hintRequest("sumar pares", "x", HINT_LEVELS[3], "es");
+  assert.match(sol.system, /reveal the full solution/);
+  assert.match(sol.user, /<code>\nx\n<\/code>/);
+});
+
+test("todas las herramientas explican qué son, cómo se usan y dan un ejemplo", () => {
+  for (const t of TOOLS) {
+    assert.ok(t.help?.what && t.help.how && t.help.example, `${t.id} sin help`);
+    assert.ok(t.help!.what.length > t.description.length / 2, `${t.id}: help demasiado corto`);
+  }
 });

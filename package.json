@@ -2,7 +2,7 @@
   "name": "magictools",
   "displayName": "MagicTools — Herramientas para programar",
   "description": "Un panel con herramientas para cada nivel (Starter, Junior y Senior), con IA local (Ollama) o por API.",
-  "version": "0.2.0",
+  "version": "0.7.1",
   "publisher": "edgar",
   "author": {
     "name": "GMR027",
@@ -20,7 +20,8 @@
     "utilities",
     "starter",
     "junior",
-    "senior"
+    "senior",
+    "vscodium"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -35,6 +36,48 @@
       {
         "command": "magictools.tool.function-tree",
         "title": "MagicTools: Árbol de función (cursor o selección)"
+      },
+      {
+        "command": "magictools.tool.saved-prompts",
+        "title": "MagicTools: Mis prompts guardados"
+      },
+      {
+        "command": "magictools.tool.smells",
+        "title": "MagicTools: Revisar code smells del archivo"
+      },
+      {
+        "command": "magictools.tool.gen-tests",
+        "title": "MagicTools: Generar tests de la función",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "magictools.tool.explain-diff",
+        "title": "MagicTools: Explicar cambios / PR"
+      },
+      {
+        "command": "magictools.tool.impact",
+        "title": "MagicTools: Simulador de impacto",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "magictools.tool.secrets",
+        "title": "MagicTools: Buscar secretos en el proyecto"
+      },
+      {
+        "command": "magictools.tool.team-rules",
+        "title": "MagicTools: Reglas de equipo"
+      },
+      {
+        "command": "magictools.explainFinding",
+        "title": "MagicTools: Explicar este aviso"
+      },
+      {
+        "command": "magictools.tool.diagnose",
+        "title": "MagicTools: Explicar el error del cursor"
+      },
+      {
+        "command": "magictools.explainDiagnostic",
+        "title": "MagicTools: Explicar este error"
       },
       {
         "command": "magictools.refreshPanel",
@@ -52,6 +95,51 @@
       {
         "command": "magictools.clearApiKey",
         "title": "MagicTools: Borrar API key"
+      },
+      {
+        "command": "magictools.tool.project-summary",
+        "title": "MagicTools: Resumen del proyecto"
+      },
+      {
+        "command": "magictools.tool.env-example",
+        "title": "MagicTools: Crear .env.example desde los secretos"
+      },
+      {
+        "command": "magictools.tool.clean-file",
+        "title": "MagicTools: Limpiar archivo (console.log, debugger, print)"
+      },
+      {
+        "command": "magictools.tool.split-fn",
+        "title": "MagicTools: Dividir esta función",
+        "icon": "$(split-horizontal)"
+      },
+      {
+        "command": "magictools.showLast",
+        "title": "MagicTools: Ver respuestas guardadas",
+        "icon": "$(history)"
+      },
+      {
+        "command": "magictools.tool.code-review",
+        "title": "MagicTools: Revisión de código (revisor estricto)",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "magictools.tool.security-review",
+        "title": "MagicTools: Revisor de seguridad (OWASP)",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "magictools.tool.complexity",
+        "title": "MagicTools: Complejidad Big-O",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "magictools.tool.deps-map",
+        "title": "MagicTools: Mapa de dependencias y ciclos"
+      },
+      {
+        "command": "magictools.tool.hotspots",
+        "title": "MagicTools: Hotspots de Git"
       }
     ],
     "viewsContainers": {
@@ -69,13 +157,50 @@
           "type": "webview",
           "id": "magictools.panel",
           "name": "MagicTools"
+        },
+        {
+          "id": "magictools.functions",
+          "name": "Árbol viviente",
+          "visibility": "collapsed"
         }
       ]
     },
     "menus": {
+      "view/item/context": [
+        {
+          "command": "magictools.tool.gen-tests",
+          "when": "view == magictools.functions && viewItem == mtFunction",
+          "group": "inline@1"
+        },
+        {
+          "command": "magictools.tool.impact",
+          "when": "view == magictools.functions && viewItem == mtFunction",
+          "group": "inline@2"
+        },
+        {
+          "command": "magictools.tool.split-fn",
+          "when": "view == magictools.functions && viewItem == mtFunction",
+          "group": "inline@3"
+        },
+        {
+          "command": "magictools.tool.code-review",
+          "when": "view == magictools.functions && viewItem == mtFunction",
+          "group": "inline@4"
+        },
+        {
+          "command": "magictools.tool.complexity",
+          "when": "view == magictools.functions && viewItem == mtFunction",
+          "group": "inline@5"
+        }
+      ],
       "view/title": [
         {
           "command": "magictools.refreshPanel",
+          "when": "view == magictools.panel",
+          "group": "navigation"
+        },
+        {
+          "command": "magictools.showLast",
           "when": "view == magictools.panel",
           "group": "navigation"
         }
@@ -106,6 +231,11 @@
           "type": "string",
           "default": "",
           "description": "Modelo de chat (que siga instrucciones). Vacío = automático: primero el que ya esté cargado en Ollama (p. ej. por GhostCode) para no cargar dos."
+        },
+        "magictools.secrets.scan": {
+          "type": "boolean",
+          "default": true,
+          "description": "Avisar en el panel de Problemas si un archivo contiene claves o contraseñas (análisis local, sin IA)."
         },
         "magictools.language": {
           "type": "string",
@@ -145,6 +275,11 @@
           "type": "boolean",
           "default": true,
           "description": "Mi animalito: cuenta las letras que escribes (nunca guarda tu código) para alimentarlo. Desactívalo para pausarlo."
+        },
+        "magictools.workshop.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mostrar El Taller (iconos SVG, animaciones CSS y datos de prueba con tu modelo de IA) en las tres pestañas."
         }
       }
     }
@@ -155,7 +290,10 @@
     "typecheck": "tsc --noEmit",
     "test": "node esbuild.mjs --tests && node --test out/test/*.test.js",
     "package": "npm run typecheck && node esbuild.mjs --production && mkdir -p dist-vsix && vsce package --no-dependencies --allow-missing-repository -o dist-vsix/magictools-$npm_package_version.vsix",
-    "vscode:prepublish": "node esbuild.mjs --production"
+    "vscode:prepublish": "node esbuild.mjs --production",
+    "install:editors": "node scripts/install-editors.mjs",
+    "package:install": "npm run package && node scripts/install-editors.mjs",
+    "release": "node scripts/release.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

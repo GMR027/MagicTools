@@ -36,6 +36,16 @@ export const LANGUAGES: { label: string; id: string }[] = [
   { label: "Rust", id: "rust" },
 ];
 
+/** Explicación larga que se ve al pasar el cursor por la herramienta. */
+export interface ToolHelp {
+  /** Qué es. */
+  what: string;
+  /** Cómo se usa. */
+  how: string;
+  /** Un ejemplo concreto. */
+  example: string;
+}
+
 /** Campo de entrada de una herramienta. */
 export interface FieldDef {
   id: string;
@@ -55,6 +65,8 @@ export interface ToolDef {
   tab: TabId;
   title: string;
   description: string;
+  /** Explicación más clara (qué es, cómo se usa y un ejemplo) para el tooltip del panel. */
+  help?: ToolHelp;
   /** Nombre de un icono de media/panel.js (por defecto, una varita). */
   icon?: string;
   /** Campos de entrada que pinta el panel. */
@@ -68,7 +80,7 @@ export interface ToolDef {
   /** Mascota animada que acompaña a la herramienta. */
   mascot?: "michi";
   /** Pieza de interfaz propia del panel (en lugar de un formulario). */
-  widget?: "pet" | "colors";
+  widget?: "pet" | "colors" | "structure" | "workshop";
   /** Herramienta sin formulario: al pulsarla se ejecuta el comando `magictools.tool.<id>`. */
   command?: boolean;
 }
@@ -78,12 +90,13 @@ export interface ToolInfo {
   id: string;
   title: string;
   description: string;
+  help?: ToolHelp;
   icon?: string;
   ai: boolean;
   action: string;
   fields: FieldDef[];
   mascot?: "michi";
-  widget?: "pet" | "colors";
+  widget?: "pet" | "colors" | "structure" | "workshop";
   command: boolean;
   type: ToolType;
 }
@@ -100,8 +113,9 @@ export function toolsByTab(tools: readonly ToolDef[]): Record<TabId, ToolInfo[]>
       id: t.id,
       title: t.title,
       description: t.description,
+      help: t.help,
       icon: t.icon,
-      ai: !!t.request,
+      ai: !!t.request || t.type === "ai",
       action: t.action ?? "Generar",
       fields: t.fields ?? [],
       mascot: t.mascot,
@@ -123,6 +137,7 @@ export function validateTools(tools: readonly ToolDef[]): string[] {
     if (seen.has(t.id)) problems.push(`id repetido: «${t.id}»`);
     seen.add(t.id);
     if (!tabs.has(t.tab)) problems.push(`«${t.id}»: la pestaña «${t.tab}» no existe`);
+    if (!t.help?.what || !t.help.how || !t.help.example) problems.push(`«${t.id}»: falta la explicación (help)`);
     if (t.request && !t.fields?.length) problems.push(`«${t.id}»: una herramienta con IA necesita campos`);
   }
   return problems;

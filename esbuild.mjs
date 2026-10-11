@@ -18,11 +18,12 @@ const common = {
 };
 
 if (tests) {
-  // Pruebas unitarias: solo módulos puros (sin `vscode`).
+  // Pruebas unitarias de módulos puros y pruebas de humo de la extensión (con un `vscode` simulado).
   const entries = readdirSync("test")
     .filter((f) => f.endsWith(".test.ts"))
     .map((f) => `test/${f}`);
-  await esbuild.build({ ...common, entryPoints: entries, outdir: "out/test", sourcemap: true });
+  // Las pruebas de humo cargan la extensión entera: `vscode` se sustituye por un mock.
+  await esbuild.build({ ...common, entryPoints: entries, outdir: "out/test", sourcemap: true, alias: { vscode: "./test/support/vscode-mock.cjs" } });
 } else {
   const ctx = await esbuild.context({
     ...common,

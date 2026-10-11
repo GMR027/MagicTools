@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { TABS, toolsByTab, toolType, TYPES, validateTools, type ToolDef } from "../src/core/registry";
 
-const tool = (id: string, tab: ToolDef["tab"]): ToolDef => ({ id, tab, title: id, description: "d" });
+const tool = (id: string, tab: ToolDef["tab"]): ToolDef => ({ id, tab, title: id, description: "d", help: { what: "w", how: "h", example: "e" } });
 
 test("hay tres pestañas: Starter, Junior y Senior", () => {
   assert.deepEqual(TABS.map((t) => t.label), ["Starter", "Junior", "Senior"]);
@@ -27,4 +27,9 @@ test("toolType: la IA es «ai», lo demás «util», salvo que se indique otro t
   assert.equal(toolType({ request: () => ({ system: "", user: "", maxTokens: 1, temperature: 0 }) }), "ai");
   assert.equal(toolType({}), "util");
   assert.equal(toolType({ type: "fun" }), "fun");
+});
+
+test("validateTools exige la explicación (help) de cada herramienta", () => {
+  const bare: ToolDef = { id: "a", tab: "starter", title: "a", description: "d" };
+  assert.equal(validateTools([bare]).length, 1);
 });
