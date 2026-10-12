@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import { cfg } from "../config";
+import { withConexiones } from "../conexiones";
+import { buildQuery, sourcesFooter } from "../core/docs";
 import { CONTEXT_RADIUS, contextSnippet, diagnosticText, pickDiagnostic, type DiagnosticInfo } from "../core/diagnostics";
 import { cleanReply, errorRequest, resolveLanguage } from "../core/prompts";
 import { chatBackend, runChat } from "../runChat";
@@ -41,9 +43,9 @@ export async function explainDiagnostic(secrets: vscode.SecretStorage, log: vsco
   const backend = await chatBackend(secrets);
   if (!backend) return;
   const lang = resolveLanguage(cfg().language, vscode.env.language, process.env);
-  const req = errorRequest(diagnosticText(info), contextSnippet(lines, info.line, CONTEXT_RADIUS), lang, true);
-  const raw = await runChat(backend, req, "explicando el error", log);
-  const text = raw ? cleanReply(raw) : "";
+  const docs = await withConexiones(errorRequest(diagnosticText(info), contextSnippet(lines, info.line, CONTEXT_RADIUS), lang, true), buildQuery(info.message, doc.getText().slice(0, 600)), [doc.languageId]);
+  const raw = await runChat(backend, docs.req, "explicando el error", log);
+  const text = raw ? cleanReply(raw) + sourcesFooter(docs.sources) : "";
   if (!text) return;
   const out = await vscode.workspace.openTextDocument({ language: "markdown", content: `# ${info.file}:${info.line + 1}\n\n> ${info.message.split("\n")[0]}\n\n${text}\n` });
   await vscode.window.showTextDocument(out, { viewColumn: vscode.ViewColumn.Beside, preview: true });

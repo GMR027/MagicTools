@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
 import { enableApiMode } from "./commands";
+import { withConexiones } from "./conexiones";
+import { buildQuery, sourcesFooter } from "./core/docs";
 import { cfg, defaultApiModel, getApiKey, PROVIDER_LABELS, update } from "./config";
 import { COLOR_FILES, renderBlock, upsertBlock, type StyleFormat } from "./core/colors";
 import { SPECIES, type Species } from "./core/pet";
@@ -339,8 +341,10 @@ export class MagicToolsPanel implements vscode.WebviewViewProvider {
       const backend = await chatBackend(this.context.secrets);
       if (!backend) return;
       const lang = resolveLanguage(cfg().language, vscode.env.language, process.env);
-      const raw = await runChat(backend, tool.request(values, lang), isWorkshop(id) ? "creando en El Taller" : tool.title.toLowerCase(), this.log);
-      const text = raw ? cleanReply(raw) : "";
+      // Las herramientas con IA (menos El Taller) también ven la documentación guardada en Conexiones, si viene al caso.
+      const docs = tool.type === "ai" && !isWorkshop(id) ? await withConexiones(tool.request(values, lang), buildQuery(...Object.values(values)), [vscode.window.activeTextEditor?.document.languageId ?? ""]) : { req: tool.request(values, lang), sources: [] };
+      const raw = await runChat(backend, docs.req, isWorkshop(id) ? "creando en El Taller" : tool.title.toLowerCase(), this.log);
+      const text = raw ? cleanReply(raw) + sourcesFooter(docs.sources) : "";
       if (text) {
         const result: Result = { text, language: values.language ?? "" };
         if (isWorkshop(id)) {

@@ -2,7 +2,7 @@
   "name": "magictools",
   "displayName": "MagicTools — Herramientas para programar",
   "description": "Un panel con herramientas para cada nivel (Starter, Junior y Senior), con IA local (Ollama) o por API.",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "publisher": "edgar",
   "author": {
     "name": "GMR027",
@@ -275,6 +275,11 @@
           "type": "boolean",
           "default": true,
           "description": "Mi animalito: cuenta las letras que escribes (nunca guarda tu código) para alimentarlo. Desactívalo para pausarlo."
+        },
+        "magictools.useConexiones": {
+          "type": "boolean",
+          "default": true,
+          "description": "Si tienes instalada la extensión Conexiones, usar la documentación que guardaste en ella (solo si viene al caso) para dar mejores respuestas."
         },
         "magictools.workshop.enabled": {
           "type": "boolean",
