@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { enableApiMode } from "./commands";
 import { withConexiones } from "./conexiones";
 import { buildQuery, sourcesFooter } from "./core/docs";
-import { cfg, defaultApiModel, getApiKey, PROVIDER_LABELS, update } from "./config";
+import { cfg, defaultApiModel, getApiKey, PROVIDER_LABELS, update, usesOwnCredentials } from "./config";
 import { COLOR_FILES, renderBlock, upsertBlock, type StyleFormat } from "./core/colors";
 import { SPECIES, type Species } from "./core/pet";
 import { applyCode } from "./core/apply";
@@ -444,8 +444,8 @@ export class MagicToolsPanel implements vscode.WebviewViewProvider {
     if (c.mode === "api") {
       const model = c.apiModel || defaultApiModel(c.apiProvider);
       const key = await getApiKey(this.context.secrets, c.apiProvider);
-      label = `${PROVIDER_LABELS[c.apiProvider]} · ${model || "sin modelo"}`;
-      ready = (!!key || c.apiProvider === "openai-compatible") && !!model;
+      label = `${PROVIDER_LABELS[c.apiProvider]} · ${model || (usesOwnCredentials(c.apiProvider) ? "predeterminado" : "sin modelo")}`;
+      ready = (!!key || c.apiProvider === "openai-compatible" || usesOwnCredentials(c.apiProvider)) && (!!model || usesOwnCredentials(c.apiProvider));
       if (!ready) problem = "Falta la API key o el modelo. Pulsa para configurarlos.";
     } else {
       ready = local.reachable && !!local.model;
